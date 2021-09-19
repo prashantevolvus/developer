@@ -1,0 +1,258 @@
+openapi: 3.0.3
+info:
+  title: Paycorp API for NACH
+  description: Paycorp APIs for Registering mandates.
+  version: '1.0.0'
+  termsOfService: http://example.com/terms/
+  contact:
+    name: paycorp Support
+    email: support@paycorp.io
+    url: http://paycorp.io/support
+  license:
+    name: Apache 2.0
+    url: http://www.paycorp.io/licenses/LICENSE-1.0.html
+servers:
+- url: https://{domainName}/{basePath}
+  description: The production API server
+  variables:
+    domainName:
+      default: sandbox.paycorp.io
+      description: this value is assigned by the service provider, in this example `sandbox.paycorp.io`
+    basePath:
+      # use special base paths as assigned, default is 'api/v1'
+      default: api/v1
+tags:
+- name: Mandate Request
+  description: Manage Mandate Requests
+  externalDocs:
+    description: Find more about Mandate Request
+    url: http://paycorp.io/doc/mndtRequest
+paths:
+  /mndtRequest:
+    post:
+      tags:
+      - 'Mandate Request'
+      summary: Initiate mandate request
+      description: Initiation request to register a mandate.
+      operationId: 'addMndtReq'
+      requestBody:
+        description: Mandate Request details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mndtRequest'    
+      responses:
+        '200':    # status code
+          description: Mandate Request Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mndtRequestOk'   
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneralError'      
+      security:
+        - api_key: []
+    put:
+      tags:
+      - 'Mandate Request'
+      summary: Update a mandate request
+      description: update a mandate request initiated ealier.
+      operationId: "updateMndtReq"
+      requestBody:
+        description: Update Mandate Request details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mndtRequestUpdate'    
+      responses:
+        '400':
+          description: "Invalid Mandate Request ID supplied"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneralError'     
+      security:
+        - api_key: []
+  /mndtRequest/{mndtReqId}:
+    get:
+      tags:
+      - "Mandate Request"
+      description: Returns Mandate Requests from the system
+      summary: Get Mandate Requests
+      operationId: getMndtReq
+      parameters:
+        - name: mndtReqId
+          in: path
+          description: 'Request ID of the Mandate Request need to be fetched.'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of Mandate Requests.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/mndtRequest'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneralError'                  
+      security:
+        - api_key: []
+components:
+  schemas:
+    mndtRequest:
+      type: object
+      properties:
+        productCode:
+          type: string
+          description: Product Code 
+        cdtrAcctId:
+          type: string
+          description: Utility Code registered
+        mndtCategoryCode:
+          type: string
+          description: Mandate Category Code
+        Reference1:
+          type: string
+          description: Reference 1 (Scheme Number)
+        Reference2:
+          type: string
+          description: Reference 2 (Consumer Reference Number)
+        ocrncsSeqTp:
+          type: string
+          description: Mandate Occurance
+        ocrncsFrqcy:
+          type: string
+          description: Freqency
+        frstColltnDt:
+          type: string
+          format: date
+          description: First collection date of a direct debit as per the mandate
+        fnlColltnDt:
+          type: string
+          format: date
+          nullable: true   # Must be null for end date is until cancel
+          description: Final collection date of a direct debit as per the mandate.  Must be 'null' for end date is 'until cancel'
+        amountTp:
+          type: string
+          description: Amount Type
+          enum: [MAXA, FIXA]
+        colltnAmt:
+          type: number
+          format: double
+          pattern: '^[\d]+[\.][\d]{2}$'
+          minimum: 1
+          description: Amount to be collected from the debtor's account
+        dbtrNm:
+          type: string
+          description: Person who authorise the mandate
+        dbtrMobNb:
+          type: string
+          description: Customer Mobile Phone Number
+        dbtrPhneNb:
+          type: string
+          description: Customer Phone Number
+        dbtrEmailAdr:
+          type: string
+          format: email
+          description: Customer email address
+        dbtrOthr:
+          type: string
+          description: Customer Additonal Identification Details
+          maxLength: 27
+        dbtrAgtMmbId:
+          type: string
+          description: Debtor bank Code
+        dbtrAcctId:
+          type: string
+          description: Debtor Account Number
+          maxLength: 34
+      required:
+        - cdtrAcctId
+        - mndtCategoryCode
+        - colltnAmt
+        - dbtrAcctId
+        - dbtrAcctPrtry
+        - dbtrAgtMmbId
+      example:   # Sample Request
+        productCode: MSME_LOAN
+        cdtrAcctId: NACH00000000000070
+        mndtCategoryCode: A101
+        Reference1: MSME-Loan
+        Reference2: 1230000863
+        ocrncsSeqTp: RCUR
+        ocrncsFrqcy: MNTH
+        frstColltnDt: 2017-07-21
+        fnlColltnDt: 2020-12-31
+        amountTp: MAXA
+        colltnAmt: 916.74
+        dbtrNm: Manohar Pande
+        dbtrMobNb: 9845093882
+        dbtrPhneNb: 08052345321
+        dbtrEmailAdr: customer@gmail.com
+        dbtrOthr: PAN:ACRT9732D
+        dbtrAgtMmbId: ICIC0TREA00
+        dbtrAcctId: 0039810000231121
+        dbtrAcctPrtry: CURRENT
+    mndtRequestUpdate:
+      type: object
+      properties:
+        mndtReqId:
+          type: string
+          description: Mandate Request ID         
+        mndtReqAction:
+          type: string
+          description: Action to be taken   
+      required:
+        - mndtReqId
+        - mndtReqAction
+      example:   # Sample Request
+        mndtReqId: ce2de9d332e14414a79fd6c9bf9d2059
+        mndtReqAction: Cancel
+    mndtRequestOk:
+      type: object
+      properties:
+        mndtReqId:
+          type: string
+          description: Mandate Request ID 
+    GeneralError:
+      type: object
+      properties:
+        code:
+          description: Error Code
+          type: integer
+          format: int32
+        message:
+          description: Error Description
+          type: string
+      required:
+        - code
+        - message
+      example:   # Sample
+        code: A02
+        message: Invalid date
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
