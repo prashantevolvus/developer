@@ -1,4 +1,14 @@
 site_name: "{paycorp.io}"
+nav:
+    - Home: 'index.md'
+    - 'Support':
+        - 'Main': 'support/index.md'
+        - 'Error': 'support/Error.md'
+        - 'Shown More': 'support/showmore.md'
+    - Installation:
+        - 'Cloud': 'installation/index.md'
+        - 'Bank': 'installation/bankinstallation.md'
+    - API: './API/'
 markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
